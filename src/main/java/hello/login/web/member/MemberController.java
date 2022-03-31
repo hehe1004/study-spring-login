@@ -22,12 +22,9 @@ public class MemberController {
 
     @GetMapping("/add")
     public String addForm(@ModelAttribute("member") Member member) {
-
         return "members/addMemberForm";
 
     }
-
-
 
 
     @PostMapping("/add")
@@ -35,9 +32,7 @@ public class MemberController {
 
         if (bindingResult.hasErrors()) {
             return "members/addMemberForm";
-
         }
-
 
         memberRepository.save(member);
         return "redirect:/";
