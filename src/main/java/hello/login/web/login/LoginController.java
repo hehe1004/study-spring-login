@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -82,7 +83,7 @@ public class LoginController {
 
     }
 
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public String loginV3(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
             return "login/loginForm";
@@ -113,7 +114,39 @@ public class LoginController {
         return "redirect:/";
 
     }
+    @PostMapping("/login")
+    public String loginV4(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult,
+                          @RequestParam(defaultValue = "/") String redirectURL,
+                                  HttpServletRequest request) {
+        if (bindingResult.hasErrors()) {
+            return "login/loginForm";
+        }
+        Member loginMember = loginService.login(form.getLoginId(), form.getPassword());
 
+        log.info("loginf? {}", loginMember);
+
+        if (loginMember == null) {
+            bindingResult.reject("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+            return "login/loginForm";
+
+        }
+
+        //로그인 성공처리
+//        Cookie idCookie = new Cookie("memberId", String.valueOf(loginMember.getId()));
+//        response.addCookie(idCookie);
+
+        //세션 관리자를 통해 세션을 생성하고, 회원 데이터 보관
+//        sessionManager.createSession(loginMember, response);
+
+
+        //로그인 성공처리
+        //세션이 있으면 있는 세션 반환, 없으면 신규 세션 반환
+        HttpSession session = request.getSession();
+        session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
+
+        return "redirect:/" + redirectURL;
+
+    }
 
 //    @PostMapping("/logout")
     private String logout(HttpServletResponse response) {
@@ -145,6 +178,8 @@ public class LoginController {
         return "redirect:/";
 
     }
+
+
 
     private void expiredCookie(HttpServletResponse response, String cookieName) {
         Cookie cookie = new Cookie(cookieName, null);
